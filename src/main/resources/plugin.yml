@@ -1,0 +1,5 @@
+name: Broken
+main: com.ulfric.plugin.broken.BrokenPlugin
+version: 1.0.0
+author: Ulfric LLC
+depend: [Platform]
