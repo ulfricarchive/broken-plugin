@@ -1,6 +1,11 @@
 package com.ulfric.plugin.broken;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.ulfric.broken.ErrorHandler;
+import com.ulfric.dragoon.qualifier.Qualifier;
+import com.ulfric.dragoon.stereotype.Stereotypes;
 import com.ulfric.plugin.Plugin;
 
 public class BrokenPlugin extends Plugin {
@@ -11,7 +16,27 @@ public class BrokenPlugin extends Plugin {
 	}
 
 	private void bindBroken() {
-		FACTORY.bind(ErrorHandler.class).toSingleton();
+		ErrorHandler main = new ErrorHandler();
+		Map<String, ErrorHandler> handlers = new HashMap<>();
+		handlers.put("main", main);
+		FACTORY.bind(ErrorHandler.class).toFunction(parameters -> {
+			Qualifier qualifier = parameters.getQualifier();
+			if (qualifier == null) {
+				return main;
+			}
+
+			Channel channelMeta = Stereotypes.getFirst(qualifier, Channel.class);
+			if (channelMeta == null) {
+				return main;
+			}
+
+			String channel = channelMeta.value();
+			if (channel.isEmpty()) {
+				return main;
+			}
+
+			return handlers.computeIfAbsent(channel, ignore -> new ErrorHandler());
+		});
 	}
 
 	private void unbindBroken() {
